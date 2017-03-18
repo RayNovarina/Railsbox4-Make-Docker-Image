@@ -8,14 +8,34 @@ below. Make a backup copy first, if desired.
 1) Before starting, you’ll need to have Docker Compose installed via instructions
 at: https://docs.docker.com/compose/install/
 
-Define the project
+2) log into projects root
+  cd /Users/.../Projects
+
+3) Git
+  .../Projects $ git clone https://github.com/RayNovarina/Railsbox4.git
+
+4) Scrub local Docker dev framework.
+- List Only stopped containers:
+  .../Railsbox4 $ docker ps --filter "status=exited"
+
+- Delete Only stopped containers:
+.../Railsbox4 $ docker rm $(docker ps --filter "status=exited" -aq)
+
+- Delete every Docker containers
+# Must be run first because images are attached to containers
+.../Railsbox4 $ docker rm $(docker ps -a -q)
+
+- Delete every Docker image
+.../Railsbox4 $ docker rmi $(docker images -q)
+
+5) Define the project
 Start by setting up the four files you’ll need to build the app.
 
-2) First, since your app is going to run inside a Docker container containing
+First, since your app is going to run inside a Docker container containing
 all of its dependencies, you’ll need to define exactly what needs to be included
 in the container. This is done using a file called Dockerfile.
 
-.../railsbox4/Dockerfile:
+.../Railsbox4/Dockerfile:
 ``
     FROM ruby:2.3.3
     RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
@@ -41,7 +61,7 @@ That’ll put your application code inside an image that will build a container
 with Ruby, Bundler and all your dependencies inside it. For more information on
 how to write Dockerfiles, see the Docker user guide and the Dockerfile reference.
 
-3) Next, create a bootstrap Gemfile which just loads Rails. It’ll be overwritten
+6) Next, create a bootstrap Gemfile which just loads Rails. It’ll be overwritten
 in a moment by rails new.
 .../railsbox4/Gemfile:
 ``
@@ -54,7 +74,7 @@ You’ll need an empty Gemfile.lock in order to build our Dockerfile.
 
 ``
 
-4) Finally, docker-compose.yml is where the magic happens. This file describes
+7) Finally, docker-compose.yml is where the magic happens. This file describes
 the services that comprise your app (a database and a web app), how to get each
 one’s Docker image (the database just runs on a pre-made PostgreSQL image, and
 the web app is built from the current directory), and the configuration needed
@@ -78,7 +98,7 @@ NOTE: The bundle version number is explicity set else bundle fails later.
           - db
 ``
 
-5) Build the project
+8) Build the project
 
 With those four files in place, you can now generate the Rails skeleton app
 using docker-compose run:
@@ -121,7 +141,7 @@ using the Dockerfile. Then it’ll run rails new inside a new container, using
 that image. Once it’s done, you should have generated a fresh app and have
 PostgreSQL running in its own container.
 
-6) See what we ended up with:
+9) See what we ended up with:
 
   .../railsbox4/$ ls -l
     total 56
@@ -141,7 +161,7 @@ PostgreSQL running in its own container.
     CONTAINER ID        IMAGE               COMMAND                  PORTS               NAMES
     35fdb63329d7        postgres            "docker-entrypoint..."   5432/tcp            railsbox4makedockerimage_db_1
 
-7) Looking around in the postgresql container:
+10) Looking around in the postgresql container:
 
   .../railsbox4/$ $ docker exec -it 35f bash
   root@35fdb63329d7:/# pwd
@@ -161,7 +181,7 @@ PostgreSQL running in its own container.
 
   root@35fdb63329d7:/# exit
 
-9) And in the web image:
+11) And in the web image:
 $ docker run -it railsbox4makedockerimage_web bash
 root@8c9f33087692:/myapp# pwd
 /myapp
@@ -169,23 +189,7 @@ root@8c9f33087692:/myapp# ls
 Dockerfile  Gemfile  Gemfile.lock  README.md  docker-compose.yml
 root@8c9f33087692:/myapp# exit
 
-
-10) Cleanup:
+12) Cleanup:
 Stop the running postgres container:
   .../railsbox4/$ docker stop 35fdb
   35fdb
-
-Other useful docker commands for cleaning up:
-II) Scrub local Docker dev framework.
-List Only stopped containers:
-  docker ps --filter "status=exited"
-
-Delete Only stopped containers:
-docker rm $(docker ps --filter "status=exited" -aq)
-
-Delete every Docker containers
-# Must be run first because images are attached to containers
-docker rm $(docker ps -a -q)
-
-Delete every Docker image
-docker rmi $(docker images -q)
