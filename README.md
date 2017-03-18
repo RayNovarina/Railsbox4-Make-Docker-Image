@@ -23,10 +23,10 @@ at: https://docs.docker.com/compose/install/
 
 - Delete every Docker containers
 # Must be run first because images are attached to containers
-.../Railsbox4 $ docker rm $(docker ps -a -q)
+.../Railsbox4 $ docker rm -f $(docker ps -a -q)
 
 - Delete every Docker image
-.../Railsbox4 $ docker rmi $(docker images -q)
+.../Railsbox4 $ docker rmi -f $(docker images -q)
 
 5) Define the project
 Start by setting up the four files you’ll need to build the app.
