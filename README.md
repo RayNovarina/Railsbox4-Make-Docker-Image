@@ -141,7 +141,51 @@ PostgreSQL running in its own container.
     CONTAINER ID        IMAGE               COMMAND                  PORTS               NAMES
     35fdb63329d7        postgres            "docker-entrypoint..."   5432/tcp            railsbox4makedockerimage_db_1
 
-7) Cleanup:
+7) Looking around in the postgresql container:
+
+  .../railsbox4/$ $ docker exec -it 35f bash
+  root@35fdb63329d7:/# pwd
+  /
+  root@35fdb63329d7:/# ls
+  bin   dev                         docker-entrypoint.sh  home  lib64  mnt  proc  run   srv  tmp var
+     ......
+  root@35fdb63329d7:/# ls /etc
+  adduser.conf            debian_version   hosts           locale.alias    modprobe.d         ppp     rmt          subgid-
+     ......
+  dbus-1                  host.conf        ld.so.conf.d    mime.types      postgresql         rcS.d   staff-group-for-usr-local
+  debconf.conf            hostname         libaudit.conf   mke2fs.conf     postgresql-common  resolv.conf  subgid
+
+  root@35fdb63329d7:/# ls /etc/postgresql
+  root@35fdb63329d7:/# ls /etc/postgresql-common
+  createcluster.conf  pg_upgradecluster.d  root.crt  supported_versions  user_clusters
+
+  root@35fdb63329d7:/# exit
+
+9) And in the web image:
+$ docker run -it railsbox4makedockerimage_web bash
+root@8c9f33087692:/myapp# pwd
+/myapp
+root@8c9f33087692:/myapp# ls
+Dockerfile  Gemfile  Gemfile.lock  README.md  docker-compose.yml
+root@8c9f33087692:/myapp# exit
+
+
+10) Cleanup:
 Stop the running postgres container:
   .../railsbox4/$ docker stop 35fdb
   35fdb
+
+Other useful docker commands for cleaning up:
+II) Scrub local Docker dev framework.
+List Only stopped containers:
+  docker ps --filter "status=exited"
+
+Delete Only stopped containers:
+docker rm $(docker ps --filter "status=exited" -aq)
+
+Delete every Docker containers
+# Must be run first because images are attached to containers
+docker rm $(docker ps -a -q)
+
+Delete every Docker image
+docker rmi $(docker images -q)
