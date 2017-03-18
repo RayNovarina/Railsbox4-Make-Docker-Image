@@ -2,7 +2,11 @@
 
 # Based on Docker Tutorial "Compose and Rails" at: https://docs.docker.com/compose/rails/
 
-1) Before starting, you’ll need to have Docker Compose installed.
+# NOTE: this Readme.md file will be overwritten in the Rails container build step
+below. Make a backup copy first, if desired.
+
+1) Before starting, you’ll need to have Docker Compose installed via instructions
+at: https://docs.docker.com/compose/install/
 
 Define the project
 Start by setting up the four files you’ll need to build the app.
@@ -81,33 +85,63 @@ using docker-compose run:
 
   $ docker-compose run web rails new . --force --database=postgresql --skip-bundle
 
-First, Compose will build the image for the web service using the Dockerfile.
-Then it’ll run rails new inside a new container, using that image. Once it’s
-done, you should have generated a fresh app.
+    Creating network "railsbox4makedockerimage_default" with the default driver
+    Pulling db (postgres:latest)...
+    Creating railsbox4makedockerimage_db_1
+    Building web
+    Step 1/9 : FROM ruby:2.3.3
+    2.3.3: Pulling from library/ruby
+      .........
+    Step 7/9 : RUN gem install bundler -v 1.11.2
+     ---> Running in 932bb23998d1
+    Successfully installed bundler-1.11.2
+    1 gem installed
+     ---> 2affe471cf3e
+     ---> Running in a1424ada0238
+    Fetching gem metadata from https://rubygems.org/...........
+    Fetching version metadata from https://rubygems.org/...
+    Fetching dependency metadata from https://rubygems.org/..
+    Resolving dependencies...
+    Installing rake 12.0.0
+      .......
+    Step 9/9 : ADD . /myapp
+     ---> f8d9ca0a2ad9
+    Removing intermediate container e9ff4f256e35
+    Successfully built f8d9ca0a2ad9
+    WARNING: Image for service web was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-
+    compose up --build`.
+          exist
+          force  README.md
+          create  Rakefile
+             ......
+          remove  config/initializers/cors.rb
+
+First, Compose will build postgres image? and then the image for the web service
+using the Dockerfile. Then it’ll run rails new inside a new container, using
+that image. Once it’s done, you should have generated a fresh app and have
+PostgreSQL running in its own container.
 
 6) See what we ended up with:
 
   .../railsbox4/$ ls -l
-  total 56
-  -rw-r--r--   1 user  staff   215 Feb 13 23:33 Dockerfile
-  -rw-r--r--   1 user  staff  1480 Feb 13 23:43 Gemfile
-  -rw-r--r--   1 user  staff  2535 Feb 13 23:43 Gemfile.lock
-  -rw-r--r--   1 root  root   478 Feb 13 23:43 README.rdoc
-  -rw-r--r--   1 root  root   249 Feb 13 23:43 Rakefile
-  drwxr-xr-x   8 root  root   272 Feb 13 23:43 app
-  drwxr-xr-x   6 root  root   204 Feb 13 23:43 bin
-  drwxr-xr-x  11 root  root   374 Feb 13 23:43 config
-  -rw-r--r--   1 root  root   153 Feb 13 23:43 config.ru
-  drwxr-xr-x   3 root  root   102 Feb 13 23:43 db
-  -rw-r--r--   1 user  staff   161 Feb 13 23:35 docker-compose.yml
-  drwxr-xr-x   4 root  root   136 Feb 13 23:43 lib
-  drwxr-xr-x   3 root  root   102 Feb 13 23:43 log
-  drwxr-xr-x   7 root  root   238 Feb 13 23:43 public
-  drwxr-xr-x   9 root  root   306 Feb 13 23:43 test
-  drwxr-xr-x   3 root  root   102 Feb 13 23:43 tmp
-  drwxr-xr-x   3 root  root   102 Feb 13 23:43 vendor
+    total 56
+    -rw-r--r--   1 user  staff   215 Feb 13 23:33 Dockerfile
+    -rw-r--r--   1 user  staff  1480 Feb 13 23:43 Gemfile
+       .....
+    drwxr-xr-x   3 root  root   102 Feb 13 23:43 tmp
+    drwxr-xr-x   3 root  root   102 Feb 13 23:43 vendor
 
-.../railsbox4/$ docker images
+  .../railsbox4/$ docker images
+    REPOSITORY                     TAG           IMAGE ID            SIZE
+    railsbox4makedockerimage_web   latest        f8d9ca0a2ad9        812 MB
+    ruby                           2.3.3         b03eadf54a64        733 MB
+    postgres                       latest        4e18b2c30f8d        266 MB
 
+  .../railsbox4/$ docker ps
+    CONTAINER ID        IMAGE               COMMAND                  PORTS               NAMES
+    35fdb63329d7        postgres            "docker-entrypoint..."   5432/tcp            railsbox4makedockerimage_db_1
 
-.../railsbox4/$ docker-compose ps
+7) Cleanup:
+Stop the running postgres container:
+  .../railsbox4/$ docker stop 35fdb
+  35fdb
